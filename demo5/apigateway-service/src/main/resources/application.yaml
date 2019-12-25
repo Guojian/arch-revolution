@@ -1,0 +1,45 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: apigateway-service
+  cloud:
+    consul:
+      host: consul-service
+      port: 8500
+      discovery:
+        register: false
+        service-name: apigateway-service
+        instance-id: ${spring.cloud.consul.discovery.service-name}:${spring.cloud.client.ip-address}:${server.port}
+        prefer-ip-address: true
+    #如果自动注册的ip地址有误，可配置下面的参数
+#    inetutils:
+#      preferred-networks: ^192.168
+    gateway:
+      routes:
+        - id: user_service_route
+          # 使用http及服务名称方式调用其它服务
+#          uri: lb://user-service
+          uri: http://user-service:8081
+          predicates:
+            - Path=/api/users,/api/users/**
+          filters:
+            - RewritePath=/api/users(?<segment>.*), /api/v1/users$\{segment}
+        - id: blog_service_route
+          # 使用http及服务名称方式调用其它服务
+#          uri: lb://blog-service
+          uri: http://blog-service:8082
+          predicates:
+            - Path=/api/blogs,/api/blogs/**
+          filters:
+            - RewritePath=/api/blogs(?<segment>.*), /api/v1/blogs$\{segment}
+        - id: aggregation_service_route
+          # 使用http及服务名称方式调用其它服务
+#          uri: lb://aggregation-service
+          uri: http://aggregation-service:8083
+          predicates:
+            - Path=/api/aggregation/**
+          filters:
+            - RewritePath=/api/aggregation(?<segment>.*), /api/v1/aggregation$\{segment}
+

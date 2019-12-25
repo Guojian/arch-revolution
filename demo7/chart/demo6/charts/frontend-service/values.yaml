@@ -1,0 +1,73 @@
+# Default values for frontend-service.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: tcnp/demo7/frontend-service/frontend-service
+  tag: 0.0.1-SNAPSHOT
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: "frontend-service"
+
+registry: registry.tcnp.com
+
+service:
+  type: ClusterIP
+  port: 8085
+
+ingress:
+  enabled: true
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - demo7.arch-revolution.tcnp.com
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+registryAuth:
+  enabled: true
+  userName: admin
+  password: Harbor12345
+  secretName: frontend-service-image-pull-secret
+
+configmap: |+
+  server.port=8085
+  spring.application.name=frontend-service
+  spring.cloud.consul.host=consul-service
+  spring.cloud.consul.port=8500
+  spring.cloud.consul.discovery.register=false
+  spring.cloud.consul.discovery.serviceName=frontend-service
+  spring.cloud.consul.discovery.instance-id=${spring.cloud.consul.discovery.serviceName}:${spring.cloud.client.ip-address}:${server.port}
+  spring.cloud.consul.discovery.prefer-ip-address=true
+  #如果自动注册的ip地址有误，可配置下面的参数
+  #spring.cloud.inetutils.preferred-networks=^192.168
+  #非istio场景时API网关地址
+  app.apiGatewayUrl=http://demo7.api.arch-revolution.tcnp.com
+  #istio场景时API网关地址
+  #app.apiGatewayUrl=http://demo7-istio.arch-revolution.tcnp.com
+

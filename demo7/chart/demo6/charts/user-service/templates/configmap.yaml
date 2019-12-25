@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: {{ include "user-service.name" . }}
+    chart: {{ include "user-service.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  name: {{ include "user-service.fullname" . }}-config
+data:
+  application.yaml: |+
+{{- if .Values.configmap }}
+    # User-supplied configuration:
+{{ .Values.configmap | indent 4 }}
+{{- end }}

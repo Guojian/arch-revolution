@@ -1,0 +1,138 @@
+basePath: /api/v1
+definitions:
+  model.User:
+    properties:
+      firstName:
+        type: string
+      id:
+        type: integer
+      lastName:
+        type: string
+      nickname:
+        type: string
+      password:
+        type: string
+    type: object
+  util.HTTPError:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: status bad request
+        type: string
+    type: object
+host: '{{.Host}}'
+info:
+  contact: {}
+  description: This is a user-service api server.
+  license: {}
+  title: Swagger user-service
+  version: "1.0"
+paths:
+  /users:
+    get:
+      description: 获取所有用户
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.HTTPError'
+            type: object
+      summary: Get all users
+    post:
+      description: 创建用户
+      parameters:
+      - description: The specified user body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+          type: object
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.HTTPError'
+            type: object
+      summary: Create user
+  /users/{id}:
+    delete:
+      description: 删除某个用户
+      parameters:
+      - description: The id of user you want to delete
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: int
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.HTTPError'
+            type: object
+      summary: Delete a user
+    get:
+      description: 查询某个用户
+      parameters:
+      - description: The id of user you want to get
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.HTTPError'
+            type: object
+      summary: Get user
+    put:
+      description: 更新某个用户
+      parameters:
+      - description: The id of user you want to get
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: The specified user body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+          type: object
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.HTTPError'
+            type: object
+      summary: Update a user
+swagger: "2.0"

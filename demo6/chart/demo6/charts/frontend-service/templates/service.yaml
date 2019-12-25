@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "frontend-service.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "frontend-service.name" . }}
+    helm.sh/chart: {{ include "frontend-service.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app: {{ include "frontend-service.fullname" . }}
+    version: v1
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "frontend-service.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

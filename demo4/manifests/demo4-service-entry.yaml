@@ -1,0 +1,105 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: user-service
+  namespace: demo4
+spec:
+  endpoints:
+    - address: 192.168.2.200
+      labels:
+        app: user-service
+        version: v1
+      ports:
+        http: 8081
+  hosts:
+    - user-service.demo4.svc.cluster.local
+  ports:
+    - name: http
+      number: 8081
+      protocol: HTTP
+  resolution: STATIC
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: blog-service
+  namespace: demo4
+spec:
+  endpoints:
+    - address: 192.168.2.200
+      labels:
+        app: blog-service
+        version: v1
+      ports:
+        http: 8082
+  hosts:
+    - blog-service.demo4.svc.cluster.local
+  ports:
+    - name: http
+      number: 8082
+      protocol: HTTP
+  resolution: STATIC
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: aggregation-service
+  namespace: demo4
+spec:
+  endpoints:
+    - address: 192.168.2.200
+      labels:
+        app: aggregation-service
+        version: v1
+      ports:
+        http: 8083
+  hosts:
+    - aggregation-service.demo4.svc.cluster.local
+  ports:
+    - name: http
+      number: 8083
+      protocol: HTTP
+  resolution: STATIC
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: apigateway-service
+  namespace: demo4
+spec:
+  endpoints:
+    - address: 192.168.2.200
+      labels:
+        app: apigateway-service
+        version: v1
+      ports:
+        http: 8084
+  hosts:
+    - apigateway-service.demo4.svc.cluster.local
+  ports:
+    - name: http
+      number: 8084
+      protocol: HTTP
+  resolution: STATIC
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: frontend-service
+  namespace: demo4
+spec:
+  endpoints:
+    - address: 192.168.2.200
+      labels:
+        app: frontend-service
+        version: v1
+      ports:
+        http: 8085
+  hosts:
+    - frontend-service.demo4.svc.cluster.local
+  ports:
+    - name: http
+      number: 8085
+      protocol: HTTP
+  resolution: STATIC
+---

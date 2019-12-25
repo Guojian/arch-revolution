@@ -1,0 +1,160 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: user-service
+    version: v1
+  name: user-service
+  namespace: demo4
+spec:
+  ports:
+    - name: "http"
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  labels:
+    app: user-service
+    version: v1
+  name: user-service
+  namespace: demo4
+subsets:
+  - addresses:
+      - ip: 192.168.2.200
+    ports:
+      - name: "http"
+        port: 8081
+        protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: blog-service
+    version: v1
+  name: blog-service
+  namespace: demo4
+spec:
+  ports:
+    - name: "http"
+      port: 8082
+      protocol: TCP
+      targetPort: 8082
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  labels:
+    app: blog-service
+    version: v1
+  name: blog-service
+  namespace: demo4
+subsets:
+  - addresses:
+      - ip: 192.168.2.200
+    ports:
+      - name: "http"
+        port: 8082
+        protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: aggregation-service
+    version: v1
+  name: aggregation-service
+  namespace: demo4
+spec:
+  ports:
+    - name: "http"
+      port: 8083
+      protocol: TCP
+      targetPort: 8083
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  labels:
+    app: aggregation-service
+    version: v1
+  name: aggregation-service
+  namespace: demo4
+subsets:
+  - addresses:
+      - ip: 192.168.2.200
+    ports:
+      - name: "http"
+        port: 8083
+        protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: apigateway-service
+    version: v1
+  name: apigateway-service
+  namespace: demo4
+spec:
+  ports:
+    - name: "http"
+      port: 8084
+      protocol: TCP
+      targetPort: 8084
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  labels:
+    app: apigateway-service
+    version: v1
+  name: apigateway-service
+  namespace: demo4
+subsets:
+  - addresses:
+      - ip: 192.168.2.200
+    ports:
+      - name: "http"
+        port: 8084
+        protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: frontend-service
+    version: v1
+  name: frontend-service
+  namespace: demo4
+spec:
+  ports:
+    - name: "http"
+      port: 8085
+      protocol: TCP
+      targetPort: 8085
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  labels:
+    app: frontend-service
+    version: v1
+  name: frontend-service
+  namespace: demo4
+subsets:
+  - addresses:
+      - ip: 192.168.2.200
+    ports:
+      - name: "http"
+        port: 8085
+        protocol: TCP
+---

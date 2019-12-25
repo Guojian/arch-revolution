@@ -1,0 +1,28 @@
+server:
+    port: 8081
+
+application:
+    service:
+        name: user-service
+    logging:
+        env: production
+    datasource:
+        password: '123456'
+        url: tcp(mysql-service:3306)/demo7_user_db?charset=utf8&parseTime=True&loc=Local
+        username: root
+        maxIdleConns: 5
+        maxOpenConns: 100
+    rabbitmq:
+        host: rabbitmq-service
+        password: guest
+        port: 5672
+        username: guest
+    redis:
+        database: 0
+        host: redis-service
+        poolConfig:
+            max-active: 8
+            max-idle: 8
+        password: ''
+        port: 6379
+        timeout: 0

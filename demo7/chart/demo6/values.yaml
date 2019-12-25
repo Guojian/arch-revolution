@@ -1,0 +1,342 @@
+# Default values for demo7.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+mysql:
+  image: "official/mysql/library/mysql"
+  imageTag: "5.7.14"
+  busybox:
+    image: "official/mysql/library/busybox"
+    tag: "1.29.3"
+  metrics:
+    image: official/mysql/prom/mysqld-exporter
+    imageTag: v0.10.0
+  mysqlRootPassword: "123456"
+  fullnameOverride: mysql-service
+  initializationFiles:
+    demo7_user_db.sql: |-
+      SET NAMES UTF8;
+      create database demo7_user_db default character set utf8;
+      use demo7_user_db;
+      DROP TABLE IF EXISTS `user`;
+      CREATE TABLE `user` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `nickname` varchar(45) NOT NULL,
+        `password` varchar(45) NOT NULL,
+        `first_name` varchar(45) DEFAULT NULL,
+        `last_name` varchar(45) DEFAULT NULL,
+        PRIMARY KEY (`id`)
+      ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
+      LOCK TABLES `user` WRITE;
+      INSERT INTO `user` VALUES (1,'Steve','gaussic2','Steve','NoJob'),(2,'Bill','111111','Bill','Gates'),(3,'Mark','22222','Mark','Zuckerberg'),(4,'gauss','11111111','Gaussic','D');
+      UNLOCK TABLES;
+    demo7_blog_db.sql: |-
+      SET NAMES UTF8;
+      create database demo7_blog_db default character set utf8;
+      use demo7_blog_db;
+      DROP TABLE IF EXISTS `blog`;
+      CREATE TABLE `blog` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `title` varchar(100) NOT NULL,
+        `content` varchar(255) DEFAULT NULL,
+        `user_id` int(11) NOT NULL,
+        `pub_date` date NOT NULL,
+        PRIMARY KEY (`id`)
+      ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+      LOCK TABLES `blog` WRITE;
+      INSERT INTO `blog` VALUES (1,'SpringMVC教程','这是SpringMVC的简单教程。TEST TEST TEST',2,'2015-03-18');
+      UNLOCK TABLES;
+
+redis:
+  image:
+    registry: registry.tcnp.com
+    repository: official/redis/bitnami/redis
+    tag: 4.0.11
+    pullPolicy: IfNotPresent
+  metrics:
+    image:
+      registry: registry.tcnp.com
+      repository: official/redis/oliver006/redis_exporter
+      tag: v0.28.0
+  volumePermissions:
+    image:
+      registry: registry.tcnp.com
+      repository: official/redis/bitnami/minideb
+      tag: latest
+  fullnameOverride: redis-service
+  usePassword: false
+  cluster:
+    enabled: false
+
+rabbitmq:
+  image:
+    registry: registry.tcnp.com
+    repository: common/library/rabbitmq
+  fullnameOverride: rabbitmq-service
+  rabbitmq:
+    username: guest
+    password: guest
+
+user-service:
+  fullnameOverride: "user-service"
+  replicaCount: 1
+  image:
+    repository: tcnp/demo7/user-service/user-service
+    tag: 0.0.1-SNAPSHOT
+  service:
+    type: ClusterIP
+    port: 8081
+  ingress:
+    enabled: false
+  registry: registry.tcnp.com
+  registryAuth:
+    enabled: true
+    userName: admin
+    password: Harbor12345
+  configmap: |+
+    server:
+      port: 8081
+    application:
+      service:
+        name: user-service
+      logging:
+        env: production
+      datasource:
+        password: '123456'
+        url: tcp(mysql-service:3306)/demo7_user_db?charset=utf8&parseTime=True&loc=Local
+        username: root
+        maxIdleConns: 5
+        maxOpenConns: 100
+      rabbitmq:
+        host: rabbitmq-service
+        port: 5672
+        username: guest
+        password: guest
+      redis:
+        database: 0
+        host: redis-service-master
+        poolConfig:
+          max-active: 8
+          max-idle: 8
+        password: ''
+        port: 6379
+        timeout: 0
+
+blog-service:
+  fullnameOverride: "blog-service"
+  replicaCount: 1
+  image:
+    repository: tcnp/demo7/blog-service/blog-service
+    tag: 0.0.1-SNAPSHOT
+  service:
+    type: ClusterIP
+    port: 8082
+  ingress:
+    enabled: false
+  registry: registry.tcnp.com
+  registryAuth:
+    enabled: true
+    userName: admin
+    password: Harbor12345
+  configmap: |+
+    server.port=8082
+    spring.jpa.show-sql=true
+    logging.level.org.springframework.data=DEBUG
+    spring.jpa.hibernate.ddl-auto=update
+    spring.datasource.url=jdbc:mysql://mysql-service:3306/demo7_blog_db?useUnicode=true&characterEncoding=utf8
+    spring.datasource.username=root
+    spring.datasource.password=123456
+    spring.application.name=blog-service
+    spring.cloud.consul.host=consul-service
+    spring.cloud.consul.port=8500
+    spring.cloud.consul.discovery.register=false
+    spring.cloud.consul.discovery.serviceName=blog-service
+    spring.cloud.consul.discovery.instance-id=${spring.cloud.consul.discovery.serviceName}:${spring.cloud.client.ip-address}:${server.port}
+    spring.cloud.consul.discovery.prefer-ip-address=true
+    #如果自动注册的ip地址有误，可配置下面的参数
+    #spring.cloud.inetutils.preferred-networks=^192.168
+    # REDIS (RedisProperties)
+    # Redis数据库索引（默认为0）
+    spring.redis.database=0
+    # Redis服务器地址
+    spring.redis.host=redis-service-master
+    # Redis服务器连接端口
+    spring.redis.port=6379
+    # Redis服务器连接密码（默认为空）
+    spring.redis.password=
+    # 连接池最大连接数（使用负值表示没有限制）
+    spring.redis.jedis.pool.max-active=8
+    # 连接池最大阻塞等待时间（使用负值表示没有限制）
+    spring.redis.jedis.pool.max-wait=-1
+    # 连接池中的最大空闲连接
+    spring.redis.jedis.pool.max-idle=8
+    # 连接池中的最小空闲连接
+    spring.redis.jedis.pool.min-idle=0
+    # 连接超时时间（毫秒）
+    spring.redis.timeout=0
+    spring.rabbitmq.host=rabbitmq-service
+    spring.rabbitmq.port=5672
+    spring.rabbitmq.username=guest
+    spring.rabbitmq.password=guest
+
+aggregation-service:
+  fullnameOverride: "aggregation-service"
+  replicaCount: 1
+  image:
+    repository: tcnp/demo7/aggregation-service/aggregation-service
+    tag: 0.0.1-SNAPSHOT
+  service:
+    type: ClusterIP
+    port: 8083
+  ingress:
+    enabled: false
+  registry: registry.tcnp.com
+  registryAuth:
+    enabled: true
+    userName: admin
+    password: Harbor12345
+  configmap: |+
+    server.port=8083
+    spring.application.name=aggregation-service
+    spring.cloud.consul.host=consul-service
+    spring.cloud.consul.port=8500
+    spring.cloud.consul.discovery.register=false
+    spring.cloud.consul.discovery.serviceName=aggregation-service
+    spring.cloud.consul.discovery.instance-id=${spring.cloud.consul.discovery.serviceName}:${spring.cloud.client.ip-address}:${server.port}
+    spring.cloud.consul.discovery.prefer-ip-address=true
+    #如果自动注册的ip地址有误，可配置下面的参数
+    #spring.cloud.inetutils.preferred-networks=^192.168
+    #ribbon不使用eureka服务发现
+    ribbon.eureka.enabled=false
+    #注释掉ribbon的超时设置
+    #ribbon.ConnectTimeout=60000
+    #ribbon.ReadTimeout=60000
+    #注释掉ribbon的超时设置
+    #ribbon.readTimeout=60000
+    #ribbon.connectTimeout=60000
+    #禁用feign调用的熔断特性
+    feign.hystrix.enabled=false
+    # REDIS (RedisProperties)
+    # Redis数据库索引（默认为0）
+    spring.redis.database=0
+    # Redis服务器地址
+    spring.redis.host=redis-service-master
+    # Redis服务器连接端口
+    spring.redis.port=6379
+    # Redis服务器连接密码（默认为空）
+    spring.redis.password=
+    # 连接池最大连接数（使用负值表示没有限制）
+    spring.redis.jedis.pool.max-active=8
+    # 连接池最大阻塞等待时间（使用负值表示没有限制）
+    spring.redis.jedis.pool.max-wait=-1
+    # 连接池中的最大空闲连接
+    spring.redis.jedis.pool.max-idle=8
+    # 连接池中的最小空闲连接
+    spring.redis.jedis.pool.min-idle=0
+    # 连接超时时间（毫秒）
+    spring.redis.timeout=0
+    spring.rabbitmq.host=rabbitmq-service
+    spring.rabbitmq.port=5672
+    spring.rabbitmq.username=guest
+    spring.rabbitmq.password=guest
+
+apigateway-service:
+  fullnameOverride: "apigateway-service"
+  replicaCount: 1
+  image:
+    repository: tcnp/demo7/apigateway-service/apigateway-service
+    tag: 0.0.1-SNAPSHOT
+  service:
+    type: ClusterIP
+    port: 8084
+  ingress:
+    enabled: true
+    path: /
+    hosts:
+      - demo7.api.arch-revolution.tcnp.com
+  registry: registry.tcnp.com
+  registryAuth:
+    enabled: true
+    userName: admin
+    password: Harbor12345
+
+  configmap: |+
+    server:
+      port: 8084
+
+    spring:
+      application:
+        name: apigateway-service
+      cloud:
+        consul:
+          host: consul-service
+          port: 8500
+          discovery:
+            register: false
+            service-name: apigateway-service
+            instance-id: ${spring.cloud.consul.discovery.service-name}:${spring.cloud.client.ip-address}:${server.port}
+            prefer-ip-address: true
+        #如果自动注册的ip地址有误，可配置下面的参数
+    #    inetutils:
+    #      preferred-networks: ^192.168
+        gateway:
+          routes:
+            - id: user_service_route
+              # 使用http及服务名称方式调用其它服务
+    #          uri: lb://user-service
+              uri: http://user-service:8081
+              predicates:
+                - Path=/api/users,/api/users/**
+              filters:
+                - RewritePath=/api/users(?<segment>.*), /api/v1/users$\{segment}
+            - id: blog_service_route
+              # 使用http及服务名称方式调用其它服务
+    #          uri: lb://blog-service
+              uri: http://blog-service:8082
+              predicates:
+                - Path=/api/blogs,/api/blogs/**
+              filters:
+                - RewritePath=/api/blogs(?<segment>.*), /api/v1/blogs$\{segment}
+            - id: aggregation_service_route
+              # 使用http及服务名称方式调用其它服务
+    #          uri: lb://aggregation-service
+              uri: http://aggregation-service:8083
+              predicates:
+                - Path=/api/aggregation/**
+              filters:
+                - RewritePath=/api/aggregation(?<segment>.*), /api/v1/aggregation$\{segment}
+
+frontend-service:
+  fullnameOverride: "frontend-service"
+  replicaCount: 1
+  image:
+    repository: tcnp/demo7/frontend-service/frontend-service
+    tag: 0.0.1-SNAPSHOT
+  service:
+    type: ClusterIP
+    port: 8085
+  ingress:
+    enabled: true
+    path: /
+    hosts:
+      - demo7.arch-revolution.tcnp.com
+  registry: registry.tcnp.com
+  registryAuth:
+    enabled: true
+    userName: admin
+    password: Harbor12345
+  configmap: |+
+    server.port=8085
+    spring.application.name=frontend-service
+    spring.cloud.consul.host=consul-service
+    spring.cloud.consul.port=8500
+    spring.cloud.consul.discovery.register=false
+    spring.cloud.consul.discovery.serviceName=frontend-service
+    spring.cloud.consul.discovery.instance-id=${spring.cloud.consul.discovery.serviceName}:${spring.cloud.client.ip-address}:${server.port}
+    spring.cloud.consul.discovery.prefer-ip-address=true
+    #如果自动注册的ip地址有误，可配置下面的参数
+    #spring.cloud.inetutils.preferred-networks=^192.168
+    #非istio场景时API网关地址
+    app.apiGatewayUrl=http://demo7.api.arch-revolution.tcnp.com
+    #istio场景时API网关地址
+    #app.apiGatewayUrl=http://demo7-istio.arch-revolution.tcnp.com

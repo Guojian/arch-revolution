@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  personal.jeremyxu.archrevolutition.demo4.tracing.support.SpringCloudTracingAutoConfiguration,personal.jeremyxu.archrevolutition.demo4.tracing.support.SpringCloudWebMvcTracingAutoConfiguration

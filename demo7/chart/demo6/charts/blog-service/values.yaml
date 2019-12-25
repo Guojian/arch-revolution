@@ -1,0 +1,97 @@
+# Default values for blog-service.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: tcnp/demo7/blog-service/blog-service
+  tag: 0.0.1-SNAPSHOT
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: "blog-service"
+
+registry: registry.tcnp.com
+
+service:
+  type: ClusterIP
+  port: 8082
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+registryAuth:
+  enabled: true
+  userName: admin
+  password: Harbor12345
+  secretName: blog-service-image-pull-secret
+
+configmap: |+
+  server.port=8082
+  spring.jpa.show-sql=true
+  logging.level.org.springframework.data=DEBUG
+  spring.jpa.hibernate.ddl-auto=update
+  spring.datasource.url=jdbc:mysql://mysql-service:3306/demo7_blog_db?useUnicode=true&characterEncoding=utf8
+  spring.datasource.username=root
+  spring.datasource.password=123456
+  spring.application.name=blog-service
+  spring.cloud.consul.host=consul-service
+  spring.cloud.consul.port=8500
+  spring.cloud.consul.discovery.register=false
+  spring.cloud.consul.discovery.serviceName=blog-service
+  spring.cloud.consul.discovery.instance-id=${spring.cloud.consul.discovery.serviceName}:${spring.cloud.client.ip-address}:${server.port}
+  spring.cloud.consul.discovery.prefer-ip-address=true
+  #如果自动注册的ip地址有误，可配置下面的参数
+  #spring.cloud.inetutils.preferred-networks=^192.168
+  # REDIS (RedisProperties)
+  # Redis数据库索引（默认为0）
+  spring.redis.database=0
+  # Redis服务器地址
+  spring.redis.host=redis-service-master
+  # Redis服务器连接端口
+  spring.redis.port=6379
+  # Redis服务器连接密码（默认为空）
+  spring.redis.password=
+  # 连接池最大连接数（使用负值表示没有限制）
+  spring.redis.jedis.pool.max-active=8
+  # 连接池最大阻塞等待时间（使用负值表示没有限制）
+  spring.redis.jedis.pool.max-wait=-1
+  # 连接池中的最大空闲连接
+  spring.redis.jedis.pool.max-idle=8
+  # 连接池中的最小空闲连接
+  spring.redis.jedis.pool.min-idle=0
+  # 连接超时时间（毫秒）
+  spring.redis.timeout=0
+  spring.rabbitmq.host=rabbitmq-service
+  spring.rabbitmq.port=5672
+  spring.rabbitmq.username=guest
+  spring.rabbitmq.password=guest

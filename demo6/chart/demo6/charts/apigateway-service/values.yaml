@@ -1,0 +1,102 @@
+# Default values for apigateway-service.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: tcnp/demo6/apigateway-service/apigateway-service
+  tag: 0.0.1-SNAPSHOT
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: "apigateway-service"
+
+registry: registry.tcnp.com
+
+service:
+  type: ClusterIP
+  port: 8084
+
+ingress:
+  enabled: true
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - demo6.api.arch-revolution.tcnp.com
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+registryAuth:
+  enabled: true
+  userName: admin
+  password: Harbor12345
+  secretName: apigateway-service-image-pull-secret
+
+configmap: |+
+  server:
+    port: 8084
+
+  spring:
+    application:
+      name: apigateway-service
+    cloud:
+      consul:
+        host: consul-service
+        port: 8500
+        discovery:
+          register: false
+          service-name: apigateway-service
+          instance-id: ${spring.cloud.consul.discovery.service-name}:${spring.cloud.client.ip-address}:${server.port}
+          prefer-ip-address: true
+      #如果自动注册的ip地址有误，可配置下面的参数
+  #    inetutils:
+  #      preferred-networks: ^192.168
+      gateway:
+        routes:
+          - id: user_service_route
+            # 使用http及服务名称方式调用其它服务
+  #          uri: lb://user-service
+            uri: http://user-service:8081
+            predicates:
+              - Path=/api/users,/api/users/**
+            filters:
+              - RewritePath=/api/users(?<segment>.*), /api/v1/users$\{segment}
+          - id: blog_service_route
+            # 使用http及服务名称方式调用其它服务
+  #          uri: lb://blog-service
+            uri: http://blog-service:8082
+            predicates:
+              - Path=/api/blogs,/api/blogs/**
+            filters:
+              - RewritePath=/api/blogs(?<segment>.*), /api/v1/blogs$\{segment}
+          - id: aggregation_service_route
+            # 使用http及服务名称方式调用其它服务
+  #          uri: lb://aggregation-service
+            uri: http://aggregation-service:8083
+            predicates:
+              - Path=/api/aggregation/**
+            filters:
+              - RewritePath=/api/aggregation(?<segment>.*), /api/v1/aggregation$\{segment}

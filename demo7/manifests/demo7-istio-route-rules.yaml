@@ -1,0 +1,132 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: demo7-istio-gateway
+  namespace: demo7
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - demo7-istio.arch-revolution.tcnp.com
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: apigateway-service-destination
+  namespace: demo7
+spec:
+  host: apigateway-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: frontend-service-destination
+  namespace: demo7
+spec:
+  host: frontend-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: user-service-destination
+  namespace: demo7
+spec:
+  host: user-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: blog-service-destination
+  namespace: demo7
+spec:
+  host: blog-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: aggregation-service-destination
+  namespace: demo7
+spec:
+  host: aggregation-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: demo7-virtual-service
+  namespace: demo7
+spec:
+  hosts:
+    - demo7-istio.arch-revolution.tcnp.com
+  gateways:
+    - demo7-istio-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api/injectClientConfig
+      route:
+        - destination:
+            host: frontend-service
+            subset: v1
+    - match:
+        - uri:
+            prefix: /api
+      route:
+        - destination:
+            host: apigateway-service
+            subset: v1
+    - route:
+        - destination:
+            host: frontend-service
+            subset: v1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo7-istio-ingressgateway
+  namespace: demo7
+spec:
+  type: ExternalName
+  externalName: istio-ingressgateway.istio-system.svc.cluster.local
+  ports:
+    - port: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: demo7-istio-ingress
+  namespace: demo7
+spec:
+  rules:
+    - host: demo7-istio.arch-revolution.tcnp.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: demo7-istio-ingressgateway
+              servicePort: 80
+---
